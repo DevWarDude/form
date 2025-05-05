@@ -2,55 +2,82 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Contact Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Send Email with Resend</title>
   </head>
-  <body>
-    <h1>Contact Us</h1>
-    <form id="contactForm">
-      <input name="name" placeholder="Your Name" required /><br />
-      <input
-        name="email"
-        type="email"
-        placeholder="Your Email"
-        required
-      /><br />
-      <textarea name="message" placeholder="Your Message" required></textarea
+  <body
+    style="
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 500px;
+      margin: auto;
+    "
+  >
+    <h2>Send Email with Resend API</h2>
+
+    <form id="emailForm">
+      <label>
+        To (Recipient Email):<br />
+        <input
+          type="email"
+          id="toEmail"
+          required
+          style="width: 100%; padding: 0.5rem; margin-bottom: 1rem"
+        /> </label
       ><br />
-      <button type="submit">Send</button>
+
+      <label>
+        Message:<br />
+        <textarea
+          id="message"
+          rows="5"
+          style="width: 100%; padding: 0.5rem; margin-bottom: 1rem"
+        >
+Hello from Resend + HTML!</textarea
+        ></label
+      ><br />
+
+      <button type="submit" style="padding: 0.5rem 1rem">Send Email</button>
     </form>
 
+    <p id="status" style="margin-top: 1rem"></p>
+
     <script>
-      document
-        .querySelector("form")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
+      const form = document.getElementById("emailForm");
+      const status = document.getElementById("status");
 
-          const formData = new FormData(e.target);
-          const data = {
-            name: formData.get("name"),
-            email: formData.get("email"),
-            message: formData.get("message"),
-          };
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-          try {
-            const response = await fetch(
-              "https://form-backend-livid.vercel.app/api/send",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-              }
-            );
+        const to = document.getElementById("toEmail").value;
+        const message = document.getElementById("message").value;
 
-            const result = await response.json();
-            alert(result.message);
-          } catch (err) {
-            console.error("Form submit error:", err);
-            alert("There was a problem submitting the form.");
-          }
+        status.textContent = "Sending...";
+
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: "re_UKVDwtnk_7PdaB8nUYoUGyBWZXaknxE8k", // ⚠️ Do NOT expose this in real apps
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Your Name <onboarding@resend.dev>", // this must match a verified sender
+            to: to,
+            subject: "Wardude704@gmail.com",
+            html: `<p>${message}</p>`,
+          }),
         });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          status.textContent = "✅ Email sent successfully!";
+        } else {
+          console.error("Error:", data);
+          status.textContent =
+            "❌ Failed: " + (data?.message || "Unknown error");
+        }
+      });
     </script>
   </body>
 </html>
